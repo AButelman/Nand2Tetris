@@ -1,0 +1,63 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.StringTokenizer;
+
+public class Assembler {
+	private String linea;
+	private Path archivoEntrada;
+	private Path archivoSalida;
+	private Charset conjuntoCaracteres;
+	
+	private void validarArgumentos(String[] argumentos) {
+		if (!(argumentos.length == 1)) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		StringTokenizer st = new StringTokenizer(argumentos[0], ".");
+		
+		if (!(st.countTokens()==2)) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		String extension = st.nextToken();
+		extension = st.nextToken();
+		extension = extension.toLowerCase();
+		
+		if (!(extension.equals("asm"))) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		conjuntoCaracteres = Charset.forName("ISO-8859-1");
+		archivoEntrada = Paths.get(argumentos[0]);
+	}
+	
+	private void ensamblar(){
+		try (BufferedReader lector = Files.newBufferedReader(archivoEntrada,
+				conjuntoCaracteres)) {
+			
+			String linea = null;
+			
+			while ((linea = lector.readLine()) != null) {
+				
+			}
+			
+		} catch (IOException e) {	
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		Assembler a = new Assembler();
+		a.validarArgumentos(args);
+		a.ensamblar();
+	}
+
+}

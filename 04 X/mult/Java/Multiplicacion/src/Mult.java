@@ -1,0 +1,22 @@
+
+public class Mult {
+	
+	public static void main(String[] args) {
+		Mult m = new Mult();
+		
+		int uno=5;
+		int dos=6;
+		
+		System.out.println(m.multiplicar(uno, dos));
+	}
+
+	private int multiplicar(int uno, int dos){
+		int resultado=0;
+		
+		for (int i=0; i < dos; i++){
+			resultado += uno;
+		}
+		
+		return resultado;
+	}
+}

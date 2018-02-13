@@ -1,0 +1,144 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.StringTokenizer;
+
+public class Assembler {
+	private String linea;
+	private String dest;
+	private String comp;
+	private String jump;
+	private Path archivoEntrada;
+	private Path archivoSalida;
+	private Charset conjuntoCaracteres;
+	private int numeroDeLineas;
+	
+	private void validarArgumentos(String[] argumentos) {
+		if (!(argumentos.length == 1)) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		StringTokenizer st = new StringTokenizer(argumentos[0], ".");
+		
+		if (!(st.countTokens()==2)) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		String salida = st.nextToken();
+		salida = salida + ".hack";
+		
+		String extension = st.nextToken();
+		extension = extension.toLowerCase();
+		
+		if (!(extension.equals("asm"))) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		conjuntoCaracteres = Charset.forName("ISO-8859-1");
+		archivoEntrada = Paths.get(argumentos[0]);
+		
+		archivoSalida = Paths.get(salida);
+	}
+	
+	private void ensamblar(){
+		try (BufferedReader lector = Files.newBufferedReader(archivoEntrada,
+				conjuntoCaracteres);
+				BufferedWriter escribir = Files.newBufferedWriter(archivoSalida, 
+						conjuntoCaracteres, StandardOpenOption.CREATE)) {
+			
+			linea = null;
+			
+			while ((linea = lector.readLine()) != null) {
+				// Si la línea está vacía, seguimos a la próxima:
+				if (linea.equals("")) { continue; }
+				
+				// Si hay un comentario de línea, seguimos a la próxima
+				if (linea.charAt(0)=='/' && linea.charAt(1)=='/') {	continue; }
+
+				linea = linea.trim();	// Sacamos todos los espacios en blanco a izquierda y derecha
+				
+				// Si hay un comentario luego de la expresión, lo sacamos
+				if (linea.contains("//")) {
+					int comentario = linea.indexOf("//");	// Buscamos el índice en donde aparece
+					linea = linea.substring(0, comentario);	// Cortamos desde el principio hasta ahí
+					linea = linea.trim();	// Le sacamos los espacios en blanco que quedaron
+				}
+								
+				if (linea.charAt(0)=='@') {	// A-Instruction
+					
+					// Convertimos lo que sigue a la @  en un entero
+					int numero = Integer.valueOf(linea.substring(1)); 
+					
+					if (numero > 32767) {
+						System.err.println("Error de sintaxis, los números asignados a las"
+								+ " instrucciones-A van de 0 a 32767");
+					}
+					
+					// Lo convertimos a una String en binario
+					String num = Integer.toBinaryString(numero);	
+					
+					// Le agregamos 0s al principio hasta llegar a los 16 dígitos
+					StringBuilder binario = new StringBuilder(num);
+					while (binario.length() < 16) {
+						binario.insert(0, '0');
+					}
+					
+					escribir.write(binario.toString() + "\n");	// Lo escribimos al archivo
+					continue;	// Seguimos a la siguiente línea
+				}
+				
+// PARSER. Dividimos la expresión en dest, comp y jump, dependiendo de si hay = o ; o ambas
+				if (linea.contains("=")) {	// Si hay un =
+					StringTokenizer t = new StringTokenizer(linea, "=");
+					dest = t.nextToken();
+					String siguiente = t.nextToken();
+					
+					if (siguiente.contains(";")) {	// Y además ;
+						StringTokenizer d = new StringTokenizer(siguiente, ";");
+						comp = d.nextToken();
+						jump = d.nextToken();
+					} else {	// Si hay = pero no ;
+						comp = siguiente;
+						jump = null;
+					}
+				} else if (linea.contains(";")) {	// Si hay ; pero no =
+					StringTokenizer p = new StringTokenizer(linea, ";");
+					dest = p.nextToken();
+					jump = p.nextToken();
+					comp = null;
+				} else {	// Si no hay = ni ; ni era una instruccion-A
+					System.err.println("Error de sintaxis.");
+					System.exit(0);
+				}
+				
+				System.out.println("Comp: " + comp);
+				System.out.println("Dest: " + dest);
+				System.out.println("Jump: " + jump);
+			}
+			
+		} catch (NoSuchFileException e) {
+			System.err.println("El archivo ingresado es inexistente.");
+		} catch (IOException e) {
+			System.err.println("Error al abrir el archivo.");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		Assembler a = new Assembler();
+		a.validarArgumentos(args);
+		a.ensamblar();
+	}
+
+}

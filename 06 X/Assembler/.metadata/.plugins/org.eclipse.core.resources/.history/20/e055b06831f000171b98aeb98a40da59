@@ -1,0 +1,12 @@
+
+public class Parser {
+	private String comp;
+	private String dest;
+	private String jump;
+	
+	public Parser(String linea) {
+		
+	}
+	
+	public String comp
+}

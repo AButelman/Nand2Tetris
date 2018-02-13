@@ -1,0 +1,15 @@
+
+public class VMTranslator {
+	private String nombre;
+	private boolean esCarpeta;
+	
+	private void validarArgumento(String[] argumentos) {
+		
+	}
+	
+	public static void main(String[] args) {
+		VMTranslator vmt = new VMTranslator();
+		vmt.validarArgumento(args);
+	}
+
+}

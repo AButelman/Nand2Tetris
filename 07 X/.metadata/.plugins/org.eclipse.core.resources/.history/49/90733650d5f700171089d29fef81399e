@@ -1,0 +1,13 @@
+
+public class VMTranslator {
+
+	private void validarArgumento(String[] argumentos) {
+		
+	}
+	
+	public static void main(String[] args) {
+		VMTranslator vmt = new VMTranslator();
+		vmt.validarArgumento(args);
+	}
+
+}

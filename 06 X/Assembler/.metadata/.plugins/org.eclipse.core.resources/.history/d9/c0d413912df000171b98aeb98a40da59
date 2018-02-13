@@ -1,0 +1,68 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.util.HashMap;
+
+public class Simbolos {
+	private String linea;
+	private int numeroDeLineas;
+	
+	public HashMap<String, Integer> resolver(HashMap<String, Integer> tablaDeSimbolos, Path archivoDeEntrada, 
+			String conjuntoCaracteres) {
+		
+		// Agregamos los símbolos predefinidos a la tabla
+				tablaDeSimbolos.put("R0", new Integer(0));
+				tablaDeSimbolos.put("R1", new Integer(1));
+				tablaDeSimbolos.put("R2", new Integer(2));
+				tablaDeSimbolos.put("R3", new Integer(3));
+				tablaDeSimbolos.put("R4", new Integer(4));
+				tablaDeSimbolos.put("R5", new Integer(5));
+				tablaDeSimbolos.put("R6", new Integer(6));
+				tablaDeSimbolos.put("R7", new Integer(7));
+				tablaDeSimbolos.put("R8", new Integer(8));
+				tablaDeSimbolos.put("R9", new Integer(9));
+				tablaDeSimbolos.put("R10", new Integer(10));
+				tablaDeSimbolos.put("R11", new Integer(11));
+				tablaDeSimbolos.put("R12", new Integer(12));
+				tablaDeSimbolos.put("R13", new Integer(13));
+				tablaDeSimbolos.put("R14", new Integer(14));
+				tablaDeSimbolos.put("R15", new Integer(15));
+				tablaDeSimbolos.put("SCREEN", new Integer(16384));
+				tablaDeSimbolos.put("KBD", new Integer(24576));
+				tablaDeSimbolos.put("SP", new Integer(0));
+				tablaDeSimbolos.put("LCL", new Integer(1));
+				tablaDeSimbolos.put("ARG", new Integer(2));
+				tablaDeSimbolos.put("THIS", new Integer(3));
+				tablaDeSimbolos.put("THAT", new Integer(4));
+				
+				try (BufferedReader lector = Files.newBufferedReader(archivoEntrada,
+						conjuntoCaracteres)) {
+					
+					while ((linea = lector.readLine()) != null) {
+						linea = linea.trim();	// Sacamos espacios en blanco
+						if (linea.equals("")) { continue; }	// Si está vacía, seguimos sin contarla
+						if (linea.charAt(0)=='/' && linea.charAt(1)=='/') {	continue; } // Si es un comentario, seguimos sin contarla
+						
+						if (linea.charAt(0)=='(' && linea.contains(")")) {	// Si es un GoTo
+							int simbolo = linea.indexOf(")");	// Buscamos el índice en donde aparece
+							linea = linea.substring(1, simbolo);	// Cortamos desde el principio hasta ahí
+							linea = linea.trim();	// Le sacamos los espacios en blanco que quedaron
+							
+							tablaDeSimbolos.put(linea, new Integer(numeroDeLineas));	// Agregamos el número de línea bajo la clave del nombre del símbolo
+												
+							continue;	// No la contamos
+						}
+						
+						numeroDeLineas++;	// Siguiente línea
+					}
+					
+				} catch (NoSuchFileException e) {
+					System.err.println("El archivo ingresado es inexistente.");
+				} catch (IOException e) {
+					System.err.println("Error al abrir el archivo.");
+					e.printStackTrace();
+				}
+	}
+}

@@ -1,0 +1,7 @@
+CHIP OnOff {
+    OUT out;
+
+    PARTS:
+	DFF(in=loop, out=flipOut, out=out);
+	Not(in=flipOut, out=loop);
+}

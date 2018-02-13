@@ -1,0 +1,24 @@
+
+public class VMTranslator {
+	private String nombre;
+	private boolean esCarpeta;
+	
+	private void validarArgumento(String[] argumentos) {
+		Argumentos a = new Argumentos();
+		a.validar(argumentos);
+		
+		nombre = a.getNombre();
+		esCarpeta = a.esCarpeta();
+	}
+	
+	private void traducir(){
+		
+	}
+	
+	public static void main(String[] args) {
+		VMTranslator vmt = new VMTranslator();
+		vmt.validarArgumento(args);	// Validamos que los argumentos estén correctamente escritos en el terminal
+		vmt.traducir();
+	}
+
+}

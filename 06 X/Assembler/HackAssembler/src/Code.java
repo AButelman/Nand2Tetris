@@ -1,0 +1,177 @@
+import java.util.HashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Code {
+	private int numero;
+	private int direccionVariable;
+	
+	public Code() { };
+	
+	public StringBuilder a(HashMap<String, Integer> tablaDeSimbolos, String linea, int dV) {
+		direccionVariable = dV;
+		Pattern patron = Pattern.compile("@\\D");	// Cualquier símbolo que no sea un número
+		Matcher coincidencia = patron.matcher(linea);	// Buscamos si hay letras luego de la @
+		
+		// Si hay una @ seguida de letras y no números, al principio de la expresión
+		if (coincidencia.find() && coincidencia.start() == 0) {	
+		
+			linea = linea.substring(1);	// Le sacamos la arroba
+									
+			// Chequeamos si el texto ya es un símbolo (predefinido, Goto o variable)
+			if (tablaDeSimbolos.containsKey(linea)) {
+					numero = Integer.valueOf(tablaDeSimbolos.get(linea));	// Tomamos el valor, pasando la clave
+			} else {	// Si no, es una variable no declarada		
+				// La agregamos	
+				tablaDeSimbolos.put(linea, new Integer(direccionVariable)); 
+				numero = direccionVariable;	// Ponemos la dirección en el statement
+				direccionVariable++;	// Actualizamos a la próxima dirección disponible
+			}
+			
+					
+		} else { // Si no, convertimos lo que sigue a la @ en un entero
+			numero = Integer.valueOf(linea.substring(1)); 
+			
+			if (numero > 32767) {
+				System.err.println("Error de sintaxis, los números asignados a las"
+						+ " instrucciones-A van de 0 a 32767");
+			}
+		}
+		
+		// Lo convertimos a una String en binario
+		String num = Integer.toBinaryString(numero);	
+		
+		// Le agregamos 0s al principio hasta llegar a los 16 dígitos
+		StringBuilder binario = new StringBuilder(num);
+		while (binario.length() < 16) {
+			binario.insert(0, '0');
+		}
+		
+		return binario;
+	}
+	
+	public int getDireccionVariable() { return direccionVariable; }
+	
+	public String comp(String comp) {
+		switch (comp) {	// Convertimos comp a binario
+		case ("0"):
+			return "0101010";
+		case ("1"):
+			return "0111111";
+		case ("-1"):
+			return "0111010";
+		case ("D"):
+			return "0001100";
+		case ("A"):
+			return "0110000";
+		case ("!D"):
+			return "0001101";
+		case ("!A"):
+			return "0110001";
+		case ("-D"):
+			return "0001111";
+		case ("-A"):
+			return "0110011";
+		case ("D+1"):
+			return "0011111";
+		case ("A+1"):
+			return "0110111";
+		case ("D-1"):
+			return "0001110";
+		case ("A-1"):
+			return "0110010";
+		case ("D+A"):
+			return "0000010";
+		case ("D-A"):
+			return "0010011";
+		case ("A-D"):
+			return "0000111";
+		case ("D&A"):
+			return "0000000";
+		case ("D|A"):
+			return "0010101";
+		case ("M"):
+			return "1110000";
+		case ("!M"):
+			return "1110001";
+		case ("-M"):
+			return "1110011";
+		case ("M+1"):
+			return "1110111";
+		case ("M-1"):
+			return "1110010";
+		case ("D+M"):
+			return "1000010";
+		case ("D-M"):
+			return "1010011";
+		case ("M-D"):
+			return "1000111";
+		case ("D&M"):
+			return "1000000";
+		case ("D|M"):
+			return "1010101";
+		default:
+			System.err.println("Error de sintaxis.");
+			System.exit(0);
+	}
+	
+		return "";
+	}
+	
+	public String dest(String dest){
+		// Convertimos dest a binario
+		if (dest==null) {	// Si no se escribió nada
+			return "000";
+		} else {
+			switch (dest) {	
+				case ("M"):
+					return "001";
+				case ("D"):
+					return "010";
+				case ("MD"):
+					return "011";
+				case ("A"):
+					return "100";
+				case ("AM"):
+					return "101";
+				case ("AD"):
+					return "110";
+				case ("AMD"):
+					return "111";
+				default:
+					System.err.println("Error de sintaxis.");
+					System.exit(0);
+			}
+		}
+		return "";
+	}
+	
+	public String jump(String jump){
+		// Convertimos jump a binario
+		if (jump==null) {
+			return "000";
+		} else {
+			switch (jump) {
+				case ("JGT"):
+					return "001";
+				case ("JEQ"):
+					return "010";
+				case ("JGE"):
+					return "011";
+				case ("JLT"):
+					return "100";
+				case ("JNE"):
+					return "101";
+				case ("JLE"):
+					return "110";
+				case ("JMP"):
+					return "111";
+				default:
+					System.err.println("Error de sintaxis.");
+					System.exit(0);
+			}
+		}
+
+		return "";
+	}
+}

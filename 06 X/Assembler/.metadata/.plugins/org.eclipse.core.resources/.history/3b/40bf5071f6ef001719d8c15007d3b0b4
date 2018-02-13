@@ -1,0 +1,477 @@
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.StringTokenizer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class Assembler {
+	private String linea;
+	private String dest;
+	private String binaryDest;
+	private String comp;
+	private String binaryComp;
+	private String jump;
+	private String binaryJump;
+	private Path archivoEntrada;
+	private Path archivoSalida;
+	private Charset conjuntoCaracteres;
+	private HashMap<String, Integer> irA;
+	private int numeroDeLineas=0;
+	private int numero;
+	private boolean esSimbolo;
+	private HashMap<String, Integer> variables = new HashMap<String, Integer>();
+	private int direccionVariable = 16;
+	
+	private void validarArgumentos(String[] argumentos) {
+		if (!(argumentos.length == 1)) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		StringTokenizer st = new StringTokenizer(argumentos[0], ".");
+		
+		if (!(st.countTokens()==2)) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		String salida = st.nextToken();
+		salida = salida + ".hack";
+		
+		String extension = st.nextToken();
+		extension = extension.toLowerCase();
+		
+		if (!(extension.equals("asm"))) {
+			System.out.println("La sintaxis correcta es java Assembler ArchivoAEnsamblar.asm");
+			System.exit(0);
+		}
+		
+		conjuntoCaracteres = Charset.forName("ISO-8859-1");
+		archivoEntrada = Paths.get(argumentos[0]);
+		
+		archivoSalida = Paths.get(salida);
+	}
+	
+	private void resolverGotos(){
+		irA = new HashMap<String, Integer>();
+		
+		try (BufferedReader lector = Files.newBufferedReader(archivoEntrada,
+				conjuntoCaracteres)) {
+			
+			while ((linea = lector.readLine()) != null) {
+				linea = linea.trim();	// Sacamos espacios en blanco
+				if (linea.equals("")) { continue; }	// Si está vacía, seguimos sin contarla
+				if (linea.charAt(0)=='/' && linea.charAt(1)=='/') {	continue; } // Si es un comentario, seguimos sin contarla
+				
+				if (linea.charAt(0)=='(' && linea.contains(")")) {
+					int simbolo = linea.indexOf(")");	// Buscamos el índice en donde aparece
+					linea = linea.substring(1, simbolo);	// Cortamos desde el principio hasta ahí
+					linea = linea.trim();	// Le sacamos los espacios en blanco que quedaron
+					
+					irA.put(linea, new Integer(numeroDeLineas));	// Agregamos el número de línea bajo la clave del nombre del símbolo
+					continue;	// No la contamos
+				}
+				
+				numeroDeLineas++;	// Siguiente línea
+			}
+			
+		} catch (NoSuchFileException e) {
+			System.err.println("El archivo ingresado es inexistente.");
+		} catch (IOException e) {
+			System.err.println("Error al abrir el archivo.");
+			e.printStackTrace();
+		}
+	}
+	
+	private void ensamblar(){
+		try (BufferedReader lector = Files.newBufferedReader(archivoEntrada,
+				conjuntoCaracteres);
+				BufferedWriter escribir = Files.newBufferedWriter(archivoSalida, 
+						conjuntoCaracteres, StandardOpenOption.CREATE)) {
+			
+			linea = null;
+			
+			while ((linea = lector.readLine()) != null) {
+				linea = linea.trim();	// Sacamos todos los espacios en blanco a izquierda y derecha
+				
+				// Si la línea está vacía, seguimos a la próxima:
+				if (linea.equals("")) { continue; }
+				
+				// Si hay un comentario de línea, seguimos a la próxima
+				if (linea.charAt(0)=='/' && linea.charAt(1)=='/') {	continue; }
+				
+				// Si hay un símbolo de goto, seguimos a la próxima
+				if (linea.charAt(0)=='(' && linea.contains(")")) { continue; }
+				
+				// Si hay un comentario luego de la expresión, lo sacamos
+				if (linea.contains("//")) {
+					int comentario = linea.indexOf("//");	// Buscamos el índice en donde aparece
+					linea = linea.substring(0, comentario);	// Cortamos desde el principio hasta ahí
+					linea = linea.trim();	// Le sacamos los espacios en blanco que quedaron
+				}
+								
+				if (linea.charAt(0)=='@') {	// A-Instruction
+					
+					Pattern patron = Pattern.compile("@\\D");	// Cualquier símbolo que no sea un número
+					Matcher coincidencia = patron.matcher(linea);	// Buscamos si hay letras luego de la @
+					
+					// Si hay una @ seguida de letras y no números, al principio de la expresión
+					if (coincidencia.find() && coincidencia.start() == 0) {	
+					
+						linea = linea.substring(1);	// Le sacamos la arroba
+						
+						esSimbolo = false;	// Reseteamos la variable que nos muestra si es un símbolo predefinido	
+					// Vemos si es uno de los símbolos predefinidos, en cuyo caso lo agregamos
+						switch (linea.toUpperCase()) {
+							case ("R0"):
+								numero=0;
+								esSimbolo=true;
+								break;
+							case ("R1"):
+								numero=1;
+								esSimbolo=true;
+								break;
+							case ("R2"):
+								numero=2;
+								esSimbolo=true;
+								break;
+							case ("R3"):
+								numero=3;
+								esSimbolo=true;
+								break;
+							case ("R4"):
+								numero=4;
+								esSimbolo=true;
+								break;
+							case ("R5"):
+								numero=5;
+								esSimbolo=true;
+								break;
+							case ("R6"):
+								numero=6;
+								esSimbolo=true;
+								break;
+							case ("R7"):
+								numero=7;
+								esSimbolo=true;
+								break;
+							case ("R8"):
+								numero=8;
+								esSimbolo=true;
+								break;
+							case ("R9"):
+								numero=9;
+								esSimbolo=true;
+								break;
+							case ("R10"):
+								numero=10;
+								esSimbolo=true;
+								break;
+							case ("R11"):
+								numero=11;
+								esSimbolo=true;
+								break;
+							case ("R12"):
+								numero=1;
+								esSimbolo=true;
+								break;
+							case ("R13"):
+								numero=1;
+								esSimbolo=true;
+								break;
+							case ("R14"):
+								numero=1;
+								esSimbolo=true;
+								break;
+							case ("R15"):
+								numero=1;
+								esSimbolo=true;
+								break;
+							case ("SCREEN"):
+								numero=16384;
+								esSimbolo=true;
+								break;
+							case ("KBD"):
+								numero=24576;
+								esSimbolo=true;
+								break;
+							case ("SP"):
+								numero=0;
+								esSimbolo=true;
+								break;
+							case ("LCL"):
+								numero=1;
+								esSimbolo=true;
+								break;
+							case ("ARG"):
+								numero=2;
+								esSimbolo=true;
+								break;
+							case ("THIS"):
+								numero=3;
+								esSimbolo=true;
+								break;
+							case ("THAT"):
+								numero=4;
+								esSimbolo=true;
+								break;
+						}
+						
+						if (!esSimbolo) {	// Si no era un símbolo predefinido
+							
+							// Chequeamos si el texto fue usado como símbolo de goto
+							if (irA.containsKey(linea)) {
+								numero = Integer.valueOf(irA.get(linea));	// Tomamos el valor, pasando la clave
+							} else {	// Si no, es una variable
+								// Si ya se guardó el símbolo como variable
+								if (variables.containsKey(linea)) {
+									numero = Integer.valueOf(variables.get(linea));	// Tomamos la dirección de la variable
+								} else {	// Si no había una variable definida con ese nombre
+									variables.put(linea, new Integer(direccionVariable)); // La agregamos
+									numero = direccionVariable;	// Ponemos la dirección en el statement
+									direccionVariable++;	// Actualizamos a la próxima dirección disponible
+								}
+							}
+							
+						}
+						
+					} else { // Si no, convertimos lo que sigue a la @ en un entero
+						numero = Integer.valueOf(linea.substring(1)); 
+						
+						if (numero > 32767) {
+							System.err.println("Error de sintaxis, los números asignados a las"
+									+ " instrucciones-A van de 0 a 32767");
+						}
+					}
+					
+					// Lo convertimos a una String en binario
+					String num = Integer.toBinaryString(numero);	
+					
+					// Le agregamos 0s al principio hasta llegar a los 16 dígitos
+					StringBuilder binario = new StringBuilder(num);
+					while (binario.length() < 16) {
+						binario.insert(0, '0');
+					}
+					
+					escribir.write(binario.toString() + "\n");	// Lo escribimos al archivo
+					continue;	// Seguimos a la siguiente línea
+				}
+				
+// PARSER. Dividimos la expresión en dest, comp y jump, dependiendo de si hay = o ; o ambas
+				if (linea.contains("=")) {	// Si hay un =
+					StringTokenizer t = new StringTokenizer(linea, "=");
+					dest = t.nextToken();
+					String siguiente = t.nextToken();
+					
+					if (siguiente.contains(";")) {	// Y además ;
+						StringTokenizer d = new StringTokenizer(siguiente, ";");
+						
+						if (!(d.hasMoreTokens())) {	// Si se escribió el ; pero antes nada
+							System.err.println("Error de sintaxis, se debe escribir algo antes del ; ");
+							System.exit(0);
+						}
+						
+						comp = d.nextToken();
+						
+						if (!(d.hasMoreTokens())) {	// Si se escribió el ; pero luego nada
+							System.err.println("Error de sintaxis, se debe escribir algo luego del ; ");
+							System.exit(0);
+						}
+						
+						jump = d.nextToken();
+						
+					} else {	// Si hay = pero no ;
+						comp = siguiente;
+						jump = null;
+					}
+				} else if (linea.contains(";")) {	// Si hay ; pero no =
+					StringTokenizer p = new StringTokenizer(linea, ";");
+					comp = p.nextToken();
+					jump = p.nextToken();
+					dest = null;
+				} else {	// Si no hay = ni ; ni era una instruccion-A
+					System.err.println("Error de sintaxis.");
+					System.exit(0);
+				}
+				
+				switch (comp) {	// Convertimos comp a binario
+					case ("0"):
+						binaryComp = "0101010";
+						break;
+					case ("1"):
+						binaryComp = "0111111";
+						break;
+					case ("-1"):
+						binaryComp = "0111010";
+						break;
+					case ("D"):
+						binaryComp = "0001100";
+						break;
+					case ("A"):
+						binaryComp = "0110000";
+						break;
+					case ("!D"):
+						binaryComp = "0001101";
+						break;
+					case ("!A"):
+						binaryComp = "0110001";
+						break;
+					case ("-D"):
+						binaryComp = "0001111";
+						break;
+					case ("-A"):
+						binaryComp = "0110011";
+						break;
+					case ("D+1"):
+						binaryComp = "0011111";
+						break;
+					case ("A+1"):
+						binaryComp = "0110111";
+						break;
+					case ("D-1"):
+						binaryComp = "0001110";
+						break;
+					case ("A-1"):
+						binaryComp = "0110010";
+						break;
+					case ("D+A"):
+						binaryComp = "0000010";
+						break;
+					case ("D-A"):
+						binaryComp = "0010011";
+						break;
+					case ("A-D"):
+						binaryComp = "0000111";
+						break;
+					case ("D&A"):
+						binaryComp = "0000000";
+						break;
+					case ("D|A"):
+						binaryComp = "0010101";
+						break;
+					case ("M"):
+						binaryComp = "1110000";
+						break;
+					case ("!M"):
+						binaryComp = "1110001";
+						break;
+					case ("-M"):
+						binaryComp = "1110011";
+						break;
+					case ("M+1"):
+						binaryComp = "1110111";
+						break;
+					case ("M-1"):
+						binaryComp = "1110010";
+						break;
+					case ("D+M"):
+						binaryComp = "1000010";
+						break;
+					case ("D-M"):
+						binaryComp = "1010011";
+						break;
+					case ("M-D"):
+						binaryComp = "1000111";
+						break;
+					case ("D&M"):
+						binaryComp = "1000000";
+						break;
+					case ("D|M"):
+						binaryComp = "1010101";
+						break;
+					default:
+						System.err.println("Error de sintaxis.");
+						System.exit(0);
+				}
+			
+				// Convertimos dest a binario
+				if (dest==null) {	// Si no se escribió nada
+					binaryDest = "000";
+				} else {
+					switch (dest) {	
+						case ("M"):
+							binaryDest = "001";
+							break;
+						case ("D"):
+							binaryDest = "010";
+							break;
+						case ("MD"):
+							binaryDest = "011";
+							break;
+						case ("A"):
+							binaryDest = "100";
+							break;
+						case ("AM"):
+							binaryDest = "101";
+							break;
+						case ("AD"):
+							binaryDest = "110";
+							break;
+						case ("AMD"):
+							binaryDest = "111";
+							break;
+						default:
+							System.err.println("Error de sintaxis.");
+							System.exit(0);
+					}
+				}
+				
+				// Convertimos jump a binario
+				if (jump==null) {
+					binaryJump = "000";
+				} else {
+					switch (jump) {
+						case ("JGT"):
+							binaryJump = "001";
+							break;
+						case ("JEQ"):
+							binaryJump = "010";
+							break;
+						case ("JGE"):
+							binaryJump = "011";
+							break;
+						case ("JLT"):
+							binaryJump = "100";
+							break;
+						case ("JNE"):
+							binaryJump = "101";
+							break;
+						case ("JLE"):
+							binaryJump = "110";
+							break;
+						case ("JMP"):
+							binaryJump = "111";
+							break;
+						default:
+							System.err.println("Error de sintaxis.");
+							System.exit(0);
+					}
+				}
+				
+				String cInstruction = "111" + binaryComp + binaryDest + binaryJump;	// Armamos la instrucción
+				escribir.write(cInstruction + "\n");	// Lo escribimos al archivo
+			}
+		} catch (IOException e) {
+			System.err.println("Error al abrir el archivo.");
+			e.printStackTrace();
+		}
+	}
+	
+	public static void main(String[] args) {
+		Assembler a = new Assembler();
+		a.validarArgumentos(args);
+		a.resolverGotos();
+		a.ensamblar();
+	}
+
+}

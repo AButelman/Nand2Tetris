@@ -1,0 +1,45 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+public class Parser {
+	private Charset conjuntoCaracteres;
+	private Path archivoALeer;
+	private BufferedReader lector;
+	private String linea;
+	private String arg1;
+	private int arg2;
+	
+	public Parser(String nombreArchivo) {
+		conjuntoCaracteres = Charset.forName("ISO-8859-1");
+		archivoALeer = Paths.get(nombreArchivo);
+		try {
+			lector = Files.newBufferedReader(archivoALeer,conjuntoCaracteres);
+		} catch (IOException e){
+			System.err.println("Error en la lectura del archivo " + archivoALeer + ".vm");
+			System.exit(0);
+		}
+	}
+	
+	public boolean hasMoreCommands(){
+		try {
+			return lector.ready();
+		} catch (IOException e){ return false; }
+	}
+	
+	public void advance(){	// Lee la siguiente línea y parsea sus comandos
+		try {
+			while (!(linea = lector.readLine()).equals("")) {	// Si es una línea en blanco, seguimos a la próxima
+				linea = linea.trim();	// Sacamos los espacios en blanco de principio y final
+				if (linea.startsWith("//")) { continue; }	
+			}
+		} catch (IOException e){
+			System.err.println("Error en la lectura del archivo " + archivoALeer + ".vm");
+			System.exit(0);
+		}
+		
+	}
+}

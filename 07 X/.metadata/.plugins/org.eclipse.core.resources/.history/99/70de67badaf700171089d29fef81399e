@@ -1,0 +1,58 @@
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.StringTokenizer;
+
+public class Parser {
+	private Charset conjuntoCaracteres;
+	private Path archivoALeer;
+	private BufferedReader lector;
+	private String linea;
+	private Comandos comando;
+	private String arg1;
+	private int arg2;
+	
+	public Parser(String nombreArchivo) {
+		conjuntoCaracteres = Charset.forName("ISO-8859-1");
+		archivoALeer = Paths.get(nombreArchivo);
+		try {
+			lector = Files.newBufferedReader(archivoALeer,conjuntoCaracteres);
+		} catch (IOException e){
+			System.err.println("Error en la lectura del archivo " + archivoALeer + ".vm");
+			System.exit(0);
+		}
+	}
+	
+	public boolean hasMoreCommands(){
+		try {
+			return lector.ready();
+		} catch (IOException e){ return false; }
+	}
+	
+	public void advance(){	// Lee la siguiente línea y parsea sus comandos
+		try {
+			do {
+				linea = lector.readLine();	// Leemos la próxima línea del archivo
+				linea = linea.trim();	// Sacamos los espacios en blanco de principio y final
+			} while(linea.equals("") || linea.startsWith("//"));	// Si la línea está en blanco o es un comentario, volvemos a leer
+			
+			// Si hay un comentario luego de la expresión, lo sacamos
+			if (linea.contains("//")) {
+				int comentario = linea.indexOf("//");	// Buscamos el índice en donde aparece
+				linea = linea.substring(0, comentario);	// Cortamos desde el principio hasta ahí
+				linea = linea.trim();	// Le sacamos los espacios en blanco que quedaron
+			}
+			
+			StringTokenizer st = new StringTokenizer(linea);	// Dividimos la línea por sus espacios
+			
+			
+		} catch (IOException e){
+			System.err.println("Error en la lectura del archivo " + archivoALeer + ".vm");
+			System.exit(0);
+		}
+		
+	}
+}

@@ -1,0 +1,13 @@
+
+public class Mult {
+
+	public static void main(String[] args) {
+
+	}
+
+	private static int multiplicacion(int uno, int dos){
+		int resultado=0;
+		
+		return resultado;
+	}
+}

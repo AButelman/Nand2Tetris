@@ -1,0 +1,42 @@
+import java.util.ArrayList;
+
+public class VMTranslator {
+	private ArrayList<String> archivos;
+	private Parser p;
+	private Comandos commandType;
+	private String arg1;
+	private int arg2;
+	
+	private void validarArgumento(String[] argumentos) {
+		Argumentos a = new Argumentos();
+		a.validar(argumentos);
+		
+		archivos = a.getArchivos();
+	}
+	
+	private void traducir(){
+		if (archivos.size()==1) {	// Si sólo hay un archivo para Parsear
+			p = new Parser(archivos.remove(0));	// Creamos el objeto Parser a partir del archivo
+		}
+		
+		
+		while (p.hasMoreCommands()){	// Mientras haya más comandos
+			p.advance();				// Leemos el siguiente comando
+			
+										// Sacamos sus partes
+			commandType = p.commandType();
+			arg1 = p.getArg1();
+			arg2 = p.getArg2();
+			
+										// Las imprimimos por pantalla
+			System.out.println(commandType + ", " + arg1 + ", " + arg2);
+		}
+	}
+	
+	public static void main(String[] args) {
+		VMTranslator vmt = new VMTranslator();
+		vmt.validarArgumento(args);	// Validamos que los argumentos estén correctamente escritos en el terminal
+		vmt.traducir();
+	}
+
+}

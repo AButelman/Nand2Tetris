@@ -1,0 +1,17 @@
+COMPUERTA	/ DESCRPICIÓN		/ LÓGICA					/ CREADA
+Nand 		 			  		  				(VIENE POR DEFECTO)
+Not		  			A NAND A	  					SI
+And					NOT(A NAND B)	  					SI
+Or					NOT(A) NAND NOT(B)					SI
+Xor					(A AND NOT(B)) OR (NOT(A) AND B)			SI
+Mux					Demasiado compleja para anotar acá			SI
+DMux					Demasiado compleja para anotar acá			SI
+Not16		/ 16-bit Not		16 NOT uno al lado del otro				SI
+And16		/ 16-bit And		16 AND uno al lado del otro				SI
+Or16		/ 16-bit Or		16 OR uno al lado del otro				SI
+Mux16		/ 16-bit Multiplexor	16 MUX uno al lado del otro				SI
+Or8Way		/ Or(in0,in1,...,in7)	((0 OR 1) OR (2 OR 3)) OR ((4 OR 5) OR (5 OR 6))	SI
+Mux4Way16	/ 16-bit/4-way mux	(A MUX16 B) MUX16 (C MUX16 D)				SI
+Mux8Wa16	/ 16-bit/8-way mux	(A B C D MUX4WAY16) MUX16 (E F G H MUX4WAY16)		SI
+DMux4Way	/ 4-way demultiplexor	In DMux (a DMux=a,b), (b DMux=c,d)			SI
+DMux8Way	/ 8-way demultiplexor	In DMux (a DMux4Way=a,b,c,d), (b DMux4Way=e,f,g,h)	SI
